@@ -21,7 +21,8 @@ DIRECTINPUTBRIDGE_API int fnDirectInputBridge(void)
 }
 DIRECTINPUTBRIDGE_API int alphaBetaGamma(HINSTANCE hinst, DWORD dwVersion, REFIID riidltf, LPVOID *ppvOut, LPUNKNOWN punkOuter) {
 	MessageBox(NULL, _T("Hello"), _T("Hello"), NULL);
-	return DirectInput8Create(hinst, dwVersion, riidltf, ppvOut, punkOuter);
+	HRESULT result = DirectInput8Create(hinst, dwVersion, riidltf, ppvOut, punkOuter);
+	return result;
 }
 // This is the constructor of a class that has been exported.
 // see DirectInputBridge.h for the class definition
