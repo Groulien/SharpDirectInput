@@ -10,13 +10,19 @@
 #define DIRECTINPUTBRIDGE_API __declspec(dllimport)
 #endif
 
+#pragma comment(lib, "dinput8.lib")
+#pragma comment(lib, "dxguid.lib")
+#include <inttypes.h>
+#include <dinput.h>
+
+#include <string>
+
 // This class is exported from the DirectInputBridge.dll
 class DIRECTINPUTBRIDGE_API CDirectInputBridge {
 public:
 	CDirectInputBridge(void);
 	// TODO: add your methods here.
 };
-
-extern DIRECTINPUTBRIDGE_API int nDirectInputBridge;
-
-DIRECTINPUTBRIDGE_API int fnDirectInputBridge(void);
+extern "C" {
+	DIRECTINPUTBRIDGE_API int alphaBetaGamma(HINSTANCE hinst, DWORD dwVersion, REFIID riidltf, LPVOID *ppvOut, LPUNKNOWN punkOuter);
+}

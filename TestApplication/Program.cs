@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 
+using SharpDirectInput;
+
 namespace TestApplication {
     static class Program {
         /// <summary>
@@ -12,7 +14,8 @@ namespace TestApplication {
         static void Main() {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Form1());
+            new DirectInput().Setup();
+            Application.Run(new MainForm());
         }
     }
 }
