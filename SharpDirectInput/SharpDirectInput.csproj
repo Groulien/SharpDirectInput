@@ -43,9 +43,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="IDirectInput8Device.cs" />
+    <Compile Include="Const.cs" />
+    <Compile Include="DataFormat.cs" />
+    <Compile Include="DeviceFlag.cs" />
+    <Compile Include="DeviceInstance.cs" />
+    <Compile Include="DeviceType.cs" />
+    <Compile Include="IDirectInputDevice.cs" />
     <Compile Include="DirectInput.cs" />
     <Compile Include="DirectInput8Device.cs" />
+    <Compile Include="JoyState.cs" />
+    <Compile Include="JoyState2.cs" />
+    <Compile Include="KeyboardState.cs" />
+    <Compile Include="MouseState.cs" />
+    <Compile Include="MouseState2.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

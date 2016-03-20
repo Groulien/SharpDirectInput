@@ -14,8 +14,9 @@
 #pragma comment(lib, "dxguid.lib")
 #include <inttypes.h>
 #include <dinput.h>
-
 #include <string>
+
+#define ENUM_TYPE_CONTROLLER 
 
 // This class is exported from the DirectInputBridge.dll
 class DIRECTINPUTBRIDGE_API CDirectInputBridge {
@@ -24,5 +25,19 @@ public:
 	// TODO: add your methods here.
 };
 extern "C" {
-	DIRECTINPUTBRIDGE_API int alphaBetaGamma(HINSTANCE hinst, DWORD dwVersion, REFIID riidltf, LPVOID *ppvOut, LPUNKNOWN punkOuter);
+	// 1. DirectInput itself
+	DIRECTINPUTBRIDGE_API int __stdcall DirectInputCreate(HINSTANCE hinst, DWORD dwVersion, LPVOID *ppvOut);
+	// 2. DirectInput actions 
+	DIRECTINPUTBRIDGE_API unsigned long DI_Release(IDirectInput8* directInput);
+	DIRECTINPUTBRIDGE_API int __stdcall DI_EnumDevices(IDirectInput8* directInput, unsigned int DI8DEVCLASS, unsigned int DIEDFL, DIDEVICEINSTANCE* array, int* size);
+	DIRECTINPUTBRIDGE_API int __stdcall DI_CreateDevice(IDirectInput8* directInput, GUID guid, IDirectInputDevice8** outDevice);
+	// 3. Device actions
+	DIRECTINPUTBRIDGE_API int DE_GetDeviceState(IDirectInputDevice8* device, DWORD stateSize, LPVOID stateStruct);
+	DIRECTINPUTBRIDGE_API int DE_SetDataFormat(IDirectInputDevice8* device, LPCDIDATAFORMAT format);
+	DIRECTINPUTBRIDGE_API int DE_SetDataFormatEnum(IDirectInputDevice8* device, int format); 	//Enum variant.
+	DIRECTINPUTBRIDGE_API int DE_Acquire(IDirectInputDevice8* device);
+	DIRECTINPUTBRIDGE_API int DE_Unacquire(IDirectInputDevice8* device);
+
+	//4. Test
+	DIRECTINPUTBRIDGE_API int Test();
 }
