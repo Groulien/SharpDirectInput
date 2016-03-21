@@ -6,78 +6,107 @@ using System.Runtime.InteropServices;
 
 namespace SharpDirectInput {
     public class DirectInput8Device : IDirectInputDevice {
-        private IntPtr deviceHandle;
-
+        public IntPtr Handle {
+            get;
+            protected set;
+        }
+        public object State {
+            get;
+            protected set;
+        }
         public DirectInput8Device(IntPtr deviceHandle) {
             if (IntPtr.Zero.Equals(deviceHandle))
                 throw new ArgumentException("deviceHandle cannot be empty.");
-            this.Handle = deviceHandle;
+            Handle = deviceHandle;
+            Format = DataFormat.Invalid;
         }
 
         [DllImport(Const.bridgeDLL)]
         protected static extern int DE_SetDataFormatEnum(IntPtr device, uint format);
         public void SetDataFormat(DataFormat format) {
-            DE_SetDataFormatEnum(Handle, (uint)format);
+            int result = DE_SetDataFormatEnum(Handle, (uint)format);
+            if(result >= 0) {
+                Format = format;
+            } else {
+                throw new Exception("Error code " + ((DirectInputError)result).ToString());
+            }
         }
         public DataFormat Format {
             get;
-            set;
+            protected set;
         }
 
         [DllImport(Const.bridgeDLL)]
         protected static extern int DE_Acquire(IntPtr device);
         public void Acquire() {
-            //TODO: resolve
-            DE_Acquire(Handle);
+            int result = DE_Acquire(Handle);
+            if (result >= 0) {
+
+            } else {
+                throw new Exception("Error code " + result.ToString());
+            }
         }
         [DllImport(Const.bridgeDLL)]
         protected static extern int DE_Unacquire(IntPtr device);
         public void Unacquire() {
-            DE_Unacquire(Handle);
+            int result = DE_Unacquire(Handle);
+            if (result >= 0) {
+
+            } else {
+                throw new Exception("Error code " + result.ToString());
+            }
         }
         [DllImport(Const.bridgeDLL)]
         protected static extern int DE_Release(IntPtr device);
         public void Release() {
             if (!IntPtr.Zero.Equals(Handle)) {
-                this.Unacquire();
-                DE_Release(Handle);
-                this.Handle = IntPtr.Zero;
+                Unacquire();
+                // TODO: DE_Release(Handle);
+                Handle = IntPtr.Zero;
             }
         }
         [DllImport(Const.bridgeDLL)]
-        protected static extern int DE_GetState(IntPtr device, int structSize, ref object structure);
+        protected static extern int DE_GetDeviceState(IntPtr device, int structSize, IntPtr ptr);
         public bool Update() {
-            DataFormat format = DataFormat.Mouse2;
-            Type t;
-            object data;
-            switch (format) {
+            Type type;
+            switch (Format) {
             case DataFormat.Joystick:
-                t = typeof(JoyState);
-                data = new JoyState();
+                    type = typeof(JoyState);
                 break;
             case DataFormat.Joystick2:
-                data = new JoyState2();
+                    type = typeof(JoyState2);
                 break;
             case DataFormat.Keyboard:
-                data = new KeyboardState();
+                    type = typeof(KeyboardState);
                 break;
 
             case DataFormat.Mouse:
-                data = new MouseState();
+                    type = typeof(MouseState);
                 break;
             case DataFormat.Mouse2:
-                data = new MouseState2();
+                    type = typeof(MouseState2);
                 break;
             default:
                 return false;
             }
-            DE_GetState(Handle, Marshal.SizeOf(data), ref data);
+            object state;
+            int result;
+            unsafe
+            {
+                IntPtr ptr = Marshal.AllocHGlobal(Marshal.SizeOf(type));
+                result = DE_GetDeviceState(Handle, Marshal.SizeOf(type), ptr);
+                if(result >= 0) {
+                    state = Marshal.PtrToStructure(ptr, type);
+                    State = state;
+                }
+                Marshal.DestroyStructure(ptr, type);
+            }            
+            if (result < 0) {
+                throw new Exception("Error code " + result.ToString());
+            }
             return true;
         }
-        public IntPtr Handle {
-            get;
-            protected set;
-        }
+
 
         public void Dispose() {
             Release();

@@ -38,8 +38,6 @@ DIRECTINPUTBRIDGE_API int __stdcall DI_CreateDevice(IDirectInput8* directInput, 
 	//directInput->CreateDevice()
 
 	HRESULT result = directInput->CreateDevice(guid, outDevice, NULL);
-	(*outDevice)->SetDataFormat(&c_dfDIJoystick2);
-	(*outDevice)->Acquire();
 	return result;
 }
 DIRECTINPUTBRIDGE_API int DI_CreateGenericDevice(IDirectInput8* directInput) {
@@ -52,11 +50,11 @@ DIRECTINPUTBRIDGE_API unsigned long DI_Release(IDirectInput8* directInput) {
 //
 // Devices
 //
-DIRECTINPUTBRIDGE_API int DE_SetDataFormat(IDirectInputDevice8* device, LPCDIDATAFORMAT format) {
+DIRECTINPUTBRIDGE_API int __stdcall DE_SetDataFormat(IDirectInputDevice8* device, LPCDIDATAFORMAT format) {
 	return device->SetDataFormat(format);
 }
 //Enum variant.
-DIRECTINPUTBRIDGE_API int DE_SetDataFormatEnum(IDirectInputDevice8* device, int format) {
+DIRECTINPUTBRIDGE_API int __stdcall DE_SetDataFormatEnum(IDirectInputDevice8* device, int format) {
 	static DIDATAFORMAT formats[5] {
 		c_dfDIKeyboard,
 		c_dfDIMouse,
@@ -71,13 +69,13 @@ DIRECTINPUTBRIDGE_API int DE_SetDataFormatEnum(IDirectInputDevice8* device, int 
 	return DE_SetDataFormat(device, &formats[format]);
 	
 }
-DIRECTINPUTBRIDGE_API int DE_GetDeviceState(IDirectInputDevice8* device, DWORD stateSize, LPVOID stateStruct) {
+DIRECTINPUTBRIDGE_API int __stdcall DE_GetDeviceState(IDirectInputDevice8* device, DWORD stateSize, LPVOID stateStruct) {
 	return device->GetDeviceState(stateSize, stateStruct);
 }
-DIRECTINPUTBRIDGE_API int DE_Acquire(IDirectInputDevice8* device) {
+DIRECTINPUTBRIDGE_API int __stdcall DE_Acquire(IDirectInputDevice8* device) {
 	return device->Acquire();
 }
-DIRECTINPUTBRIDGE_API int DE_Unacquire(IDirectInputDevice8* device) {
+DIRECTINPUTBRIDGE_API int __stdcall DE_Unacquire(IDirectInputDevice8* device) {
 	return device->Unacquire();
 }
 DIRECTINPUTBRIDGE_API int Test() {

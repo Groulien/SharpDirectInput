@@ -48,6 +48,7 @@
     <Compile Include="DeviceFlag.cs" />
     <Compile Include="DeviceInstance.cs" />
     <Compile Include="DeviceType.cs" />
+    <Compile Include="DirectInputError.cs" />
     <Compile Include="IDirectInputDevice.cs" />
     <Compile Include="DirectInput.cs" />
     <Compile Include="DirectInput8Device.cs" />

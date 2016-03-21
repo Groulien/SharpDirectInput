@@ -145,7 +145,7 @@
         public uint Release() {
             uint result = 0;
             if (!IntPtr.Zero.Equals(Handle)) {
-                result = DI_Release(Handle);
+                // TODO: result = DI_Release(Handle);
                 Handle = IntPtr.Zero;
             }
             return result;
