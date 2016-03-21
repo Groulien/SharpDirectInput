@@ -6,6 +6,7 @@ This is a learning project used to understand DirectInput and P/Invoke a bit bet
 Please note that the 'Bridge' dll is there to create 
 
 *This library targets the unicode version of DirectInput because .Net strings auto-support unicode.*
+
 *32-bit (x86) is the current target environment, 64-bit (x64) may be targeted later.*
 
 **SharpDirectInput**
