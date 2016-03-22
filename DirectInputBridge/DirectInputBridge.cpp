@@ -5,8 +5,9 @@
 #include "DirectInputBridge.h"
 #include <tchar.h>
 
-#include <vector>
-
+DIRECTINPUTBRIDGE_API ULONG __stdcall Release(IUnknown* ptr) {
+	return ptr->Release();
+}
 DIRECTINPUTBRIDGE_API int __stdcall DirectInputCreate(HINSTANCE hinst, DWORD dwVersion, LPVOID *ppvOut) {
 	HRESULT result = DirectInput8Create(hinst, dwVersion, IID_IDirectInput8, ppvOut, NULL);
 	return result;
@@ -93,4 +94,10 @@ DIRECTINPUTBRIDGE_API int Test() {
 	
 	ptr->Release();
 	return 0;
+}
+DIRECTINPUTBRIDGE_API int __stdcall DE_GetCapabilities(IDirectInputDevice8* device, DIDEVCAPS* caps) {
+	return device->GetCapabilities(caps);
+}
+DIRECTINPUTBRIDGE_API int __stdcall DE_Poll(IDirectInputDevice8* device) {
+	return device->Poll();
 }

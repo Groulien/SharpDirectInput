@@ -21,7 +21,7 @@ namespace SharpDirectInput {
             Format = DataFormat.Invalid;
         }
 
-        [DllImport(Const.bridgeDLL)]
+        [DllImport(Win32.Bridge)]
         protected static extern int DE_SetDataFormatEnum(IntPtr device, uint format);
         public void SetDataFormat(DataFormat format) {
             int result = DE_SetDataFormatEnum(Handle, (uint)format);
@@ -36,7 +36,7 @@ namespace SharpDirectInput {
             protected set;
         }
 
-        [DllImport(Const.bridgeDLL)]
+        [DllImport(Win32.Bridge)]
         protected static extern int DE_Acquire(IntPtr device);
         public void Acquire() {
             int result = DE_Acquire(Handle);
@@ -46,7 +46,7 @@ namespace SharpDirectInput {
                 throw new Exception("Error code " + result.ToString());
             }
         }
-        [DllImport(Const.bridgeDLL)]
+        [DllImport(Win32.Bridge)]
         protected static extern int DE_Unacquire(IntPtr device);
         public void Unacquire() {
             int result = DE_Unacquire(Handle);
@@ -56,16 +56,36 @@ namespace SharpDirectInput {
                 throw new Exception("Error code " + result.ToString());
             }
         }
-        [DllImport(Const.bridgeDLL)]
+        [DllImport(Win32.Bridge)]
         protected static extern int DE_Release(IntPtr device);
         public void Release() {
             if (!IntPtr.Zero.Equals(Handle)) {
                 Unacquire();
-                // TODO: DE_Release(Handle);
+                Win32.Release(Handle);
                 Handle = IntPtr.Zero;
             }
         }
-        [DllImport(Const.bridgeDLL)]
+        [DllImport(Win32.Bridge, CallingConvention=CallingConvention.StdCall)]
+        protected static extern int DE_GetCapabilities(IntPtr device, ref DeviceCaps DiDevCaps);
+        public DeviceCaps GetCapabilities() {
+            DeviceCaps DiDevCaps = new DeviceCaps();
+            DiDevCaps.dwSize = (uint)Marshal.SizeOf(typeof(DeviceCaps));
+            int result = DE_GetCapabilities(Handle, ref DiDevCaps);
+            if(result >= 0)
+                return DiDevCaps;
+            throw new Exception("Error code " + result.ToString());
+        }
+        [DllImport(Win32.Bridge, CallingConvention=CallingConvention.StdCall)]
+        protected static extern int DE_Poll(IntPtr device);
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public bool Poll() {
+            return DE_Poll(Handle) >= 0;
+        }
+
+        [DllImport(Win32.Bridge)]
         protected static extern int DE_GetDeviceState(IntPtr device, int structSize, IntPtr ptr);
         public bool Update() {
             Type type;

@@ -43,11 +43,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Const.cs" />
+    <Compile Include="DeviceCaps.cs" />
+    <Compile Include="DeviceType.cs" />
+    <Compile Include="Win32.cs" />
     <Compile Include="DataFormat.cs" />
     <Compile Include="DeviceFlag.cs" />
     <Compile Include="DeviceInstance.cs" />
-    <Compile Include="DeviceType.cs" />
+    <Compile Include="DeviceClass.cs" />
     <Compile Include="DirectInputError.cs" />
     <Compile Include="IDirectInputDevice.cs" />
     <Compile Include="DirectInput.cs" />

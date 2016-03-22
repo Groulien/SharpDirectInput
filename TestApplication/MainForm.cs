@@ -15,18 +15,19 @@ namespace TestApplication {
     public partial class MainForm : Form {
         List<DirectInput8Device> devices = new List<DirectInput8Device>();
         DirectInput di = new DirectInput();
+        DirectInput8Device current = null;
         public MainForm() {
             InitializeComponent();
         }
 
         private void MainForm_Shown(object sender, EventArgs e) {
             di.Setup();
-            foreach (DeviceInstance instance in di.ListDevices(DeviceClass.GameController, DeviceFlag.AttachedOnly)) {
+           /* foreach (DeviceInstance instance in di.ListDevices(DeviceClass.GameController, DeviceFlag.AttachedOnly)) {
                 DirectInput8Device device = di.CreateDevice(instance.guidInstance);
                 device.SetDataFormat(DataFormat.Joystick2);
                 AddDevice(device);
             }
-            timer1.Enabled = true;
+            timer1.Enabled = true;*/
         }
         private void AddDevice(DirectInput8Device device) {
             device.Acquire();
@@ -123,6 +124,58 @@ namespace TestApplication {
                     
                     label1.Text = sb.ToString();
                 }
+            }
+        }
+
+        private void performRefresh(object sender, EventArgs e) {
+            DeviceInstance[] instances = di.ListDevices();
+            DisplayDevice[] values = new DisplayDevice[instances.Length];
+            for (int i = 0; i < instances.Length; i++) {
+                values[i] = new DisplayDevice(instances[i]);
+            }
+            listDevices.DataSource = values;
+            listDevices.DisplayMember = "Name";
+        }
+        private class DisplayDevice {
+            public DisplayDevice (DeviceInstance backend) {
+                this.Device = backend;
+                Name = backend.GetProductName();
+            }
+            public string Name {
+                get;
+                protected set;
+            }
+            public DeviceInstance Device{
+                get;
+                protected set;
+            }
+        }
+
+        private void displayDevice(object sender, EventArgs e) {
+            if (listDevices.SelectedItem == null)
+                return;
+            DeviceInstance instance = (listDevices.SelectedItem as DisplayDevice).Device;
+            DirectInput8Device next = di.CreateDevice(instance.guidInstance);
+            StringBuilder sb = new StringBuilder();
+            if (next != null) {
+                DeviceCaps caps = next.GetCapabilities();
+                for (int i = 0; i < caps.dwAxes; i++) {
+                    // TODO: Add Axes Component
+                }
+                for (int i = 0; i < caps.dwButtons; i++) {
+                    // TODO: Add Button Component
+                }
+                for (int i = 0; i < caps.dwPOVs; i++) {
+                    // TODO: Add POV Component
+                }
+                foreach (FieldInfo field in caps.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public)) {
+                    sb.AppendFormat("{0} = {1}\n", field.Name, field.GetValue(caps));
+                }
+                if (current != null) {
+                    current.Dispose();
+                }
+                current = next;
+                label1.Text = sb.ToString();
             }
         }
     }

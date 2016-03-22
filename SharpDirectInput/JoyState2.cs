@@ -8,8 +8,9 @@ using BYTE = System.Byte;
 using System.Runtime.InteropServices;
 namespace SharpDirectInput {
     /// <summary>
-    /// 
+    /// Data structure for the Joystick2 Data Format.
     /// </summary>
+    /// <seealso cref="SharpDirectInput.DataFormat.Joystick2"/>
     [StructLayout(LayoutKind.Sequential)]
     public unsafe struct JoyState2 {
         /// <summary>

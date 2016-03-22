@@ -9,13 +9,6 @@
         /// Latest version of DirectInput.
         /// </summary>
         protected const uint DIRECTINPUT_LATEST_VERSION = 0x0800;
-        /// <summary>
-        /// Gets the Module Handle of named module.
-        /// </summary>
-        /// <param name="lpModuleName">Name of the module to get a handle for. Pass NULL for current module.</param>
-        /// <returns>Handle of the current module.</returns>
-        [DllImport(Const.Kernel32)]
-        protected static extern IntPtr GetModuleHandle(string lpModuleName);
 
         /// <summary>
         /// Creates a new instance of DirectInput.
@@ -61,14 +54,14 @@
         /// <param name="dwVersion">Version of DirectInput</param>
         /// <param name="directInput">Handle to a DirectInput instance</param>
         /// <returns>Error if less than 0.</returns>
-        [DllImport(Const.bridgeDLL, CallingConvention = CallingConvention.StdCall)]
+        [DllImport(Win32.Bridge, CallingConvention = CallingConvention.StdCall)]
         protected static extern int DirectInputCreate(IntPtr handleInstance, uint dwVersion, out IntPtr directInput);
         /// <summary>
         /// Creates the internal DirectInput handle.
         /// </summary>
         public void Setup() {
             IntPtr handle;
-            int result = DirectInputCreate(GetModuleHandle(null), this.Version, out handle);
+            int result = DirectInputCreate(Win32.GetModuleHandle(null), this.Version, out handle);
             if (result >= 0) {
                 this.Handle = handle;
             } else {
@@ -85,7 +78,7 @@
         /// <param name="array">Array to store information in.</param>
         /// <param name="count">[IN] Size of input array, [OUT] number of devices in array.</param>
         /// <returns>Error if less than 0.</returns>
-        [DllImport(Const.bridgeDLL, CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall)]
+        [DllImport(Win32.Bridge, CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall)]
         protected static extern int DI_EnumDevices(IntPtr directInput, uint DI8DEVCLASS, uint DIEDFL, [In, Out] DeviceInstance[] array, ref int count);
         /// <summary>
         /// Gets device information.
@@ -110,7 +103,7 @@
         /// <param name="guid">Instance guid of the device.</param>
         /// <param name="device">Output pointer to the unmanaged device class.</param>
         /// <returns></returns>
-        [DllImport(Const.bridgeDLL, CallingConvention = CallingConvention.StdCall)]
+        [DllImport(Win32.Bridge, CallingConvention = CallingConvention.StdCall)]
         protected static extern int DI_CreateDevice(IntPtr directInput, Guid guid, ref IntPtr device);
         /// <summary>
         /// Creates a DirectInput Device based on an instance Guid.
@@ -137,7 +130,7 @@
         /// </summary>
         /// <param name="directInputHandle">Handle to release.</param>
         /// <returns>0 or positive on success.</returns>
-        [DllImport(Const.bridgeDLL, CallingConvention = CallingConvention.StdCall)]
+        [DllImport(Win32.Bridge, CallingConvention = CallingConvention.StdCall)]
         protected static extern uint DI_Release(IntPtr directInputHandle); 
         /// <summary>
         /// Releases the handle to unmanaged DirectInput object.
@@ -145,7 +138,7 @@
         public uint Release() {
             uint result = 0;
             if (!IntPtr.Zero.Equals(Handle)) {
-                // TODO: result = DI_Release(Handle);
+                result = Win32.Release(Handle);
                 Handle = IntPtr.Zero;
             }
             return result;
