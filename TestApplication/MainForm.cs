@@ -76,53 +76,6 @@ namespace TestApplication {
         private void timer1_Tick(object sender, EventArgs e) {
             if(current.Update())
                 panel1.Invalidate();
-            return;
-            StringBuilder sb = new StringBuilder();
-            foreach (DirectInput8Device device in devices) {
-                if(device.Update()) {
-                    sb.Clear();
-                    object state = device.State;
-                    if(!(state is JoyState2)) {
-                        JoyState2 joy = (JoyState2)state;
-                        byte[] rgb;
-                        uint[] pov;
-                        int[] rgl;
-                        int[] rglV;
-                        int[] rglA;
-                        int[] rglS;
-                        unsafe
-                        {
-                            rgl = Unfix(joy.rglSlider, JoyState2.rglS_Len);
-                            rgb = Unfix(joy.rgbButtons, JoyState2.rgb_Len);
-                            pov = Unfix(joy.rgdwPOV, JoyState2.rgd_Len);
-                            rglV = Unfix(joy.rglVSlider, JoyState2.rglVS_len);
-                            rglA = Unfix(joy.rglASlider, JoyState2.rglAS_len);
-                            rglS = Unfix(joy.rglFSlider, JoyState2.rglFS_Len);
-
-                        }
-                        sb.AppendFormat("rgl = {0}\n", String.Join("," , rgl));
-                        sb.AppendFormat("rgb = {0}\n", String.Join(",", rgb));
-                        sb.AppendFormat("pov = {0}\n", String.Join(",", pov));
-                        sb.AppendFormat("rglV = {0}\n", String.Join(",", rglV));
-                        sb.AppendFormat("rglA = {0}\n", String.Join(",", rglA));
-                        sb.AppendFormat("rglS = {0}\n", String.Join(",", rglS));
-
-                    } else {
-                        FieldInfo[] fields = state.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance);
-                        foreach (FieldInfo fi in fields) {
-                            object value = fi.GetValue(state);
-                            if(value.ToString().EndsWith("FixedBuffer")) {
-                                Type t = value.GetType();
-                                System.Diagnostics.Debugger.Break();
-                            } else {
-                                sb.AppendFormat("{0} = {1}\n", fi.Name, value);
-                            }
-                        }
-                    }
-                    
-                    label1.Text = sb.ToString();
-                }
-            }
         }
 
         private void performRefresh(object sender, EventArgs e) {
@@ -139,7 +92,8 @@ namespace TestApplication {
         private void displayDevice(object sender, EventArgs e) {
             if (listDevices.SelectedItem == null)
                 return;
-            DeviceInstance instance = (listDevices.SelectedItem as DeviceInfo).Device;
+            DeviceInfo info = (listDevices.SelectedItem as DeviceInfo);
+            DeviceInstance instance = info.Device;
             DirectInput8Device next = di.CreateDevice(instance.guidInstance);
             StringBuilder sb = new StringBuilder();
             if (next != null) {
@@ -147,16 +101,48 @@ namespace TestApplication {
                 capabilities = caps;
 
                 foreach (FieldInfo field in caps.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public)) {
-                    sb.AppendFormat("{0} = {1}\n", field.Name, field.GetValue(caps));
+                    if (field.Name == "dwDevType") {
+                        DeviceType raw = (DeviceType)caps.dwDevType;
+                        string desc = null;
+                        if (raw.HasFlag(DeviceType.Gamepad)) {
+                            desc = "Gamepad";
+                            next.SetDataFormat(DataFormat.Joystick2);
+                            next.Acquire();
+                        } else if (raw.HasFlag(DeviceType.Joystick)) {
+                            desc = "Joystick";
+                        } else if (raw.HasFlag(DeviceType.Keyboard)) {
+                            next.SetDataFormat(DataFormat.Keyboard);
+                            next.Acquire();
+                            desc = "Keyboard";
+                        } else if (raw.HasFlag(DeviceType.Mouse)) {
+                            desc = "Mouse";
+                        } else if (raw.HasFlag(DeviceType.Remote)) {
+                            desc = "Remote";
+                        } else if (raw.HasFlag(DeviceType.Supplemental)) {
+                            desc = "Supplemental";
+                        } else if (raw.HasFlag(DeviceType.Device)) {
+                            desc = "Miscellaneous";
+
+                            if (caps.dwButtons > 4 && info.Name.Contains("Logitech")) {
+                                next.SetCooperationLevel(this.Handle, 0 /*TODO: DISCL_BACKGROUND | DISCL_NONEXCLUSIVE*/);
+                                next.SetDataFormat(DataFormat.Keyboard);
+                                next.Acquire();
+                            }
+
+
+
+                        } else {
+                            desc = "Unspecified";
+                        }
+                        sb.AppendFormat("{0} = {1} ({2})\n", field.Name, field.GetValue(caps), desc);
+                    } else {
+                        sb.AppendFormat("{0} = {1}\n", field.Name, field.GetValue(caps));
+                    }
                 }
                 if (current != null) {
                     current.Dispose();
                 }
                 current = next;
-                if(instance.GetProductName().Contains("XBOX")) {
-                    current.SetDataFormat(DataFormat.Joystick2);
-                    current.Acquire();
-                }
                 label1.Text = sb.ToString();
                 timer1.Enabled = true;
             }
@@ -166,9 +152,19 @@ namespace TestApplication {
             if (current == null)
                 return;
             e.Graphics.Clear(panel1.BackColor);
-            object state = current.State;
-            if(state is JoyState2) {
-                paintJoyState2(e.Graphics, e.ClipRectangle, (JoyState2)state, capabilities.Value);
+
+            Point cursor = new Point(0,0);
+            if (current.Format == DataFormat.Joystick2) {
+                paintJoyState2(e.Graphics, e.ClipRectangle, (JoyState2)current.State, capabilities.Value);
+            } else if (current.Format == DataFormat.Keyboard) {
+                byte[] data = (byte[])current.State;
+                unsafe {
+                    fixed (byte* ptr = data) {
+                        paintKeys(e.Graphics, e.ClipRectangle, ref cursor, ptr, (int)capabilities.Value.dwButtons);
+                    }
+                }
+                
+                
             }
 
         }
@@ -247,6 +243,31 @@ namespace TestApplication {
             g.DrawString(state.lX.ToString(), panel1.Font, Brushes.Black, cursor);
             for (int i = 0; i < caps.dwPOVs; i++) {
                 // TODO: Add POV Component
+            }
+        }
+        private unsafe void paintKeys(Graphics g, Rectangle bounds, ref Point cursor, byte* keys, int length) {
+            Size size = g.MeasureString("000", panel1.Font, bounds.Size).ToSize();
+            Rectangle rect;
+            for (int i = 0; i < length; i++) {
+                if (cursor.X + size.Width > bounds.Right) {
+                    cursor.Y += size.Height;
+                    cursor.X = bounds.Left;
+                }
+                rect = new Rectangle(cursor, size);
+                Brush front, back;
+                if (keys[i] > 0) {
+                    front = Brushes.White;
+                    back = Brushes.Black;
+                } else {
+                    front = Brushes.Black;
+                    back = Brushes.White;
+                }
+                g.FillRectangle(back, rect);
+                g.DrawString(i.ToString("00"), panel1.Font, front, rect);
+                g.DrawRectangle(Pens.Black, rect);
+
+                // TODO: Add Button Component
+                cursor.X += size.Width;
             }
         }
     }

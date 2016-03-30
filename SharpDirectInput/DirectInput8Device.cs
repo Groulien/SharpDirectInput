@@ -22,6 +22,9 @@ namespace SharpDirectInput {
         }
 
         [DllImport(Win32.Bridge)]
+        protected static extern int DE_SetDataFormat(IntPtr device);
+
+        [DllImport(Win32.Bridge)]
         protected static extern int DE_SetDataFormatEnum(IntPtr device, uint format);
         public void SetDataFormat(DataFormat format) {
             int result = DE_SetDataFormatEnum(Handle, (uint)format);
@@ -56,8 +59,6 @@ namespace SharpDirectInput {
                 throw new Exception("Error code " + result.ToString());
             }
         }
-        [DllImport(Win32.Bridge)]
-        protected static extern int DE_Release(IntPtr device);
         public void Release() {
             if (!IntPtr.Zero.Equals(Handle)) {
                 Unacquire();
@@ -87,8 +88,14 @@ namespace SharpDirectInput {
 
         [DllImport(Win32.Bridge)]
         protected static extern int DE_GetDeviceState(IntPtr device, int structSize, IntPtr ptr);
+        [DllImport(Win32.Bridge)]
+        protected unsafe static extern int DE_GetDeviceState(IntPtr device, int structSize, byte* ptr);
+
+
         public bool Update() {
             Type type;
+            object state;
+            int result;
             switch (Format) {
             case DataFormat.Joystick:
                     type = typeof(JoyState);
@@ -97,8 +104,18 @@ namespace SharpDirectInput {
                     type = typeof(JoyState2);
                 break;
             case DataFormat.Keyboard:
-                    type = typeof(KeyboardState);
-                break;
+                    //type = typeof(KeyboardState);
+                byte[] keys = new byte[256];
+                unsafe {
+                    fixed (byte* ptr = keys) {
+                        
+                        result = DE_GetDeviceState(Handle, keys.Length, ptr);
+                    }
+                }
+                
+                if(result >= 0)
+                    State = keys;
+                return result >= 0;
 
             case DataFormat.Mouse:
                     type = typeof(MouseState);
@@ -109,8 +126,6 @@ namespace SharpDirectInput {
             default:
                 return false;
             }
-            object state;
-            int result;
             unsafe
             {
                 IntPtr ptr = Marshal.AllocHGlobal(Marshal.SizeOf(type));
@@ -125,6 +140,11 @@ namespace SharpDirectInput {
                 throw new Exception("Error code " + result.ToString());
             }
             return true;
+        }
+        [DllImport(Win32.Bridge)]
+        protected unsafe static extern int DE_SetCooperationLevel(IntPtr device, uint flags);
+        public void SetCooperationLevel(IntPtr Window, uint flags) {
+
         }
 
 

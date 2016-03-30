@@ -43,8 +43,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CustomDataFormat.cs" />
     <Compile Include="DeviceCaps.cs" />
     <Compile Include="DeviceType.cs" />
+    <Compile Include="ObjectDataFormat.cs" />
     <Compile Include="Win32.cs" />
     <Compile Include="DataFormat.cs" />
     <Compile Include="DeviceFlag.cs" />

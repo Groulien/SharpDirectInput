@@ -114,8 +114,13 @@
             IntPtr deviceHandle = IntPtr.Zero;
             int result = DI_CreateDevice(Handle, guid, ref deviceHandle);
             if (result >= 0 && !IntPtr.Zero.Equals(deviceHandle))
-                return new DirectInput8Device(deviceHandle);
+                return CreateDevice(deviceHandle);
+
             throw new Exception("Error code " + result.ToString());
+        }
+
+        protected virtual DirectInput8Device CreateDevice(IntPtr deviceHandle) {
+            return new DirectInput8Device(deviceHandle);
         }
         /// <summary>
         /// Creates a DirectInput Device of specified device class.
