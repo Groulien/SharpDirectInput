@@ -11,5 +11,11 @@ namespace SharpDirectInput {
         public LONG    lY;
         public LONG    lZ;
         public fixed BYTE rgbButtons[8];
+
+        public unsafe BYTE GetButton(int i) {
+            fixed (BYTE* ptr = rgbButtons) {
+                return ptr[i];
+            }
+        }
     }
 }
